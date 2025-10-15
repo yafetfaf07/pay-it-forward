@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import morgan from "morgan";
-import envalid from "envalid"; // Already in your deps
+import * as envalid from "envalid"; // Already in your deps
 import { UserService } from "./services/UserService";
 import { UserController } from "./controllers/UserController";
 import { UserRouter } from "./routes/UserRouter";
@@ -14,9 +14,9 @@ dotenv.config();
 const env = envalid.cleanEnv(process.env, {
   MONGO_DB_STRING: envalid.str({
     desc: "MongoDB connection string",
-    default: process.env.NODE_ENV === "production" 
-      ? process.env.MONGO_DB_STRING!  // Production must provide
-      : process.env.MONGO_DB_LOCAL// Local dev default
+    default: process.env.NODE_ENV === "development" 
+      ? process.env.MONGO_DB_LOCAL!  // Production must provide
+      : process.env.MONGO_DB_STRING!// Local dev default
   }),
   NODE_ENV: envalid.str({ 
     desc: "Environment (development/production)", 
