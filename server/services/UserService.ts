@@ -1,15 +1,14 @@
 import User from "../models/User";
 export class UserService {
     async createUser(
-        fname: string,
-        lname: string,
+        name: string,
         phone_no: string,
-        password: string
+        
     ) {
-        return await User.create({ fname, lname, phone_no, password });
+        return await User.create({ name, phone_no });
     }
-    async loginUser(phone_no: string, password: string) {
-        return await User.findOne({ phone_no, password:password }).exec();
+    async loginUser(phone_no:string) {
+        return await User.findOne({ phone_no }).exec();
     }
     async getUserByPhoneNumber(phone_no: string, ) {
         return await User.findOne({ phone_no: phone_no,  }).exec();

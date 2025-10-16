@@ -1,5 +1,4 @@
 import createHttpError from "http-errors";
-import User from "../models/User";
 import { UserService } from "../services/UserService";
 import createTokens from "../utils/jwt";
 import { RequestHandler } from "express";
@@ -12,11 +11,11 @@ export class UserController {
   createUser: RequestHandler<
     unknown,
     unknown,
-    { fname: string; lname: string; phone_no: string; password: string }
+    { name:string; phone_no: string; }
   > = async (req, res, next) => {
-    const { fname, lname, phone_no, password } = req.body;
+    const {  name, phone_no } = req.body;
     try {
-      if (!fname || !lname || !phone_no || !password) {
+      if ( !name || !phone_no) {
         throw createHttpError(400, "All fields are required");
       }
       const existingUser =
@@ -25,12 +24,10 @@ export class UserController {
         throw createHttpError(409, "User already exists");
       }
       const newUser = await this._userService.createUser(
-        fname,
-        lname,
+        name,
         phone_no,
-        password
       );
-      const { accessToken, refreshToken } = createTokens(newUser._id);
+      const {refreshToken } = createTokens(newUser._id);
       res.cookie("token", refreshToken, {
         httpOnly: true,
         secure: false,
@@ -40,7 +37,7 @@ export class UserController {
       res
         .status(201)
         .json({
-          token: accessToken,
+          token: refreshToken,
           message: "Registration Successful",
           data: newUser,
         });
@@ -49,4 +46,20 @@ export class UserController {
       next(error);
     }
   };
+  login:RequestHandler<unknown, unknown, {phone_no:string}>= async(req,res,next) => {
+    const phoneNo= req.body.phone_no;
+    try {
+      if(!phoneNo) {
+        throw createHttpError(400, "Phone Number Required");
+      }
+      const getUser = await this._userService.loginUser(phoneNo);
+      if(!getUser) {
+        throw createHttpError(404, "User doesn't exist");
+      }
+      const {refreshToken} = createTokens(getUser._id);
+      res.status(200).json({message:"login successful", data:getUser, token:refreshToken});
+    } catch (error) {
+      
+    }
+  }
 }
