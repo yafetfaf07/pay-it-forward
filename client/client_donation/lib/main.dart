@@ -2,9 +2,11 @@
 
 import 'package:client_donation/pages/signup.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-void main() {
+Future main()async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -16,11 +18,7 @@ class MyApp extends StatelessWidget {
     // 1. MaterialApp is the ancestor.
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      // 2. The home property now points to the new widget.
+    
       home: const HomeScreen(),
     );
   }
