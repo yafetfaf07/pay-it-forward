@@ -1,9 +1,12 @@
 // main.dart
 
+import 'package:client_donation/pages/dashboard.dart';
 import 'package:client_donation/pages/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 Future main()async {
   await dotenv.load(fileName: ".env");
@@ -13,16 +16,48 @@ Future main()async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  Future<Widget> _getInitialPage() async {
+    const storage = FlutterSecureStorage();
+    final String? refreshToken = await storage.read(key: 'token');
+print(refreshToken);
+    if (refreshToken != null && !JwtDecoder.isExpired(refreshToken)) {
+      // Token exists and is not expired
+      return Dashboard(id: JwtDecoder.decode(refreshToken)['id']);
+    } else {
+      // Token is missing or expired
+      return  HomeScreen();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 1. MaterialApp is the ancestor.
     return MaterialApp(
+      // theme: ThemeData(textTheme: GoogleFonts.geologicaTextTheme()),
       debugShowCheckedModeBanner: false,
-    
-      home: const HomeScreen(),
+      home: FutureBuilder<Widget>(
+        future: _getInitialPage(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            // Show a loading indicator while checking token
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (snapshot.hasError) {
+            // Handle errors (e.g., storage read issues)
+            return const Scaffold(
+              body: Center(child: Text('Error checking authentication')),
+            );
+          }
+          // Return the resolved page (UserHomePage or UserSignUppage)
+          return snapshot.data ?? Signup();
+        },
+      ),
     );
   }
 }
+
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -96,3 +131,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+

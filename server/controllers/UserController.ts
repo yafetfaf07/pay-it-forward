@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import { UserService } from "../services/UserService";
 import createTokens from "../utils/jwt";
 import { RequestHandler } from "express";
+import mongoose from "mongoose";
 
 export class UserController {
   private _userService: UserService;
@@ -60,6 +61,22 @@ export class UserController {
       res.status(200).json({message:"login successful", data:getUser, token:refreshToken});
     } catch (error) {
       
+    }
+  }
+  findUserById:RequestHandler<{id:string}, unknown, unknown>= async(req,res,next) => {
+    const id= new mongoose.Types.ObjectId(req.params.id);
+    try {
+      if(!id) {
+        throw createHttpError(400, "User Id Required");
+      }
+      const getUserName = await this._userService.getUserName(id);
+      if(!getUserName) {
+        throw createHttpError(404, "User doesn't exist");
+      }
+      res.status(200).json( {data:getUserName});
+    } catch (error) {
+      console.error(error);
+      next(error);
     }
   }
 }

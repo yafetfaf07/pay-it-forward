@@ -10,7 +10,8 @@ export class UserRouter {
     }
     registerRoutes() {
         this.router.post("/register", this._userController.createUser);
-        this,this.router.post('/login', this._userController.login)
+        this.router.post('/login', this._userController.login)
+        this.router.get("/getUsername/:id", this._userController.findUserById);
         return this.router;
     }
 }

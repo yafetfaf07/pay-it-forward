@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "../models/User";
 export class UserService {
     async createUser(
@@ -12,6 +13,9 @@ export class UserService {
     }
     async getUserByPhoneNumber(phone_no: string, ) {
         return await User.findOne({ phone_no: phone_no,  }).exec();
+    }
+    async getUserName(id:mongoose.Types.ObjectId) {
+        return await User.findOne({_id:id}, {name:1}).exec();
     }
     
 }

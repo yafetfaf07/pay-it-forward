@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:client_donation/components/otp_form.dart';
+import 'package:client_donation/pages/otp_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -16,10 +16,7 @@ class Signup extends StatefulWidget {
 
 class _SignupState extends State<Signup> {
   // Controllers
-  TextEditingController firstname = TextEditingController();
-  TextEditingController lastname = TextEditingController();
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
+  TextEditingController name = TextEditingController();
   TextEditingController phoneController = TextEditingController();
 
   // ⭐ FIXED: PhoneNumber as CLASS VARIABLE - NO REBUILDS!
@@ -69,6 +66,7 @@ class _SignupState extends State<Signup> {
                     ),
                     SizedBox(height: 20,),
                     TextField(
+                      controller: name,
                       decoration: InputDecoration(
                         label: Text("Enter your name"),
                         hintText: "John Doe",
@@ -172,7 +170,7 @@ class _SignupState extends State<Signup> {
     // ⭐ Navigate to OTP
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => OtpForm(phone: fullPhone)),
+      MaterialPageRoute(builder: (_) => OtpForm(phone: fullPhone, name:name.text)),
     );
   }
 
