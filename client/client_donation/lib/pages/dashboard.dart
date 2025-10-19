@@ -6,14 +6,14 @@ import 'package:http/http.dart' as http;
 
 class Dashboard extends StatefulWidget {
   final String id;
-    Dashboard({super.key, required this.id});
-    String name="";
+  Dashboard({super.key, required this.id});
+  String name = "";
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
- @override
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -31,33 +31,102 @@ class _DashboardState extends State<Dashboard> {
     if (response.statusCode == 200) {
       dynamic merchantResponse = json.decode(response.body);
       setState(() {
-      widget.name=merchantResponse['data']['name'];
+        widget.name = merchantResponse['data']['name'];
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade200,
       appBar: AppBar(
-        
         toolbarHeight: 60,
-        foregroundColor: Colors.white,
-        backgroundColor: const Color(0xFFFFC107),
+        foregroundColor: const Color.fromARGB(255, 129, 98, 4),
+        backgroundColor: const Color.fromARGB(255, 252, 251, 247),
         elevation: 2,
         actions: [
-          IconButton(onPressed: () {
-
-          }, icon: Icon(Icons.notifications_outlined))
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.notifications_outlined),
+          ),
         ],
-        leading: IconButton(onPressed: () {
-
-        }, icon: Icon(Icons.menu)),
+        leading: IconButton(onPressed: () {}, icon: Icon(Icons.menu)),
       ),
-      body: Container(
-        margin: EdgeInsets.symmetric(horizontal: 8),
+      body: SizedBox(
         child: Column(
           children: [
-           Text("Good Morning, ${widget.name}", style: GoogleFonts.poppins(fontSize: 24, color: Color(0xFF8E6262, ), fontWeight: FontWeight.w500),)
+            Container(
+              width: MediaQuery.of(context).size.width * 1,
+              height: 148,
+              decoration: BoxDecoration(
+                color: Colors.amber,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Image.asset(
+                            'images/star.png',
+                            height: 20,
+                            color: const Color.fromARGB(83, 37, 37, 37),
+                          ),
+                          Text(
+                            "👋🏼👋🏼Hello, ${widget.name}",
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              color: const Color.fromARGB(255, 49, 49, 49),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Image.asset(
+                            'images/star.png',
+                            height: 20,
+                            color: const Color.fromARGB(83, 37, 37, 37),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Text(
+                    "\$673",
+                    style: GoogleFonts.geologica(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Image.asset(
+                        'images/star.png',
+                        height: 20,
+                        color: const Color.fromARGB(83, 37, 37, 37),
+                      ),
+
+                      Text(
+                        "Total donations",
+                        style: GoogleFonts.geologica(
+                          fontSize: 18,
+                          color: const Color.fromARGB(255, 168, 168, 168),
+                        ),
+                      ),
+                      Image.asset(
+                        'images/star.png',
+                        height: 20,
+                        color: const Color.fromARGB(83, 37, 37, 37),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

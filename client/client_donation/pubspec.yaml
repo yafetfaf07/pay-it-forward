@@ -40,6 +40,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   flutter_secure_storage: ^9.2.4
   jwt_decoder: ^2.0.1
+  flutter_svg: ^2.2.1
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +69,7 @@ flutter:
      - .env
      - images/Coins-amico.png
      - images/Computer login-cuate.png
+     - images/star.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

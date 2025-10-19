@@ -24,7 +24,7 @@ class _SignupState extends State<Signup> {
 
   Future<Map<String,dynamic>> sendOtp(String token) async {
   final response = await http.get(
-    Uri.parse('https://api.afromessage.com/api/challenge?from&to=+251985235803&len=4&t=0&ttl=300'),
+    Uri.parse('https://api.afromessage.com/api/challenge?from&to=${phoneController.text}&len=4&t=0&ttl=300'),
     headers: {'Authorization': 'Bearer $token'},
   );
   if(response.statusCode==200) {
