@@ -88,6 +88,7 @@ class _SignupState extends State<Signup> {
                       ),
                       child: InternationalPhoneNumberInput(
                         textAlign: TextAlign.center,
+                        
                         onInputChanged: (value) {
                           phone_no = value;
                         },
@@ -102,7 +103,7 @@ class _SignupState extends State<Signup> {
                           fontSize: 16,
                           color: Colors.black87,
                         ),
-                        initialValue: PhoneNumber(isoCode: 'US'),
+                        initialValue: PhoneNumber(isoCode: 'ET', ),
                         textFieldController: phoneController,
                         formatInput: true,
                         keyboardType: TextInputType.number,

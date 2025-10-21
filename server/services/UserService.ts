@@ -15,7 +15,12 @@ export class UserService {
         return await User.findOne({ phone_no: phone_no,  }).exec();
     }
     async getUserName(id:mongoose.Types.ObjectId) {
-        return await User.findOne({_id:id}, {name:1}).exec();
+        const user = await User.findOne({ _id: id }, { name: 1 }).exec();
+        if (user && user.name) {
+            const firstName = user.name.split(' ')[0]; // Extract content before space
+            return firstName;
+        }
+        return null;
     }
     
 }

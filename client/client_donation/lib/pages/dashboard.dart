@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:client_donation/components/donation-card.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +18,7 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      getUserName("http://localhost:5000/api/users/getUsername/${widget.id}");
+      getUserName("http://192.168.0.182:5000/api/users/getUsername/${widget.id}");
     });
   }
 
@@ -31,7 +32,7 @@ class _DashboardState extends State<Dashboard> {
     if (response.statusCode == 200) {
       dynamic merchantResponse = json.decode(response.body);
       setState(() {
-        widget.name = merchantResponse['data']['name'];
+        widget.name = merchantResponse['data'];
       });
     }
   }
@@ -39,29 +40,38 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade200,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: const Color.fromARGB(202, 115, 64, 255),
+        foregroundColor: Colors.black,
+        child: Icon(Icons.qr_code_scanner_outlined),
+      ),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         toolbarHeight: 60,
-        foregroundColor: const Color.fromARGB(255, 129, 98, 4),
-        backgroundColor: const Color.fromARGB(255, 252, 251, 247),
-        elevation: 2,
+        foregroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(202, 115, 64, 255),
+        elevation: 0,
         actions: [
           IconButton(
+            iconSize: 30,
             onPressed: () {},
             icon: Icon(Icons.notifications_outlined),
           ),
         ],
-        leading: IconButton(onPressed: () {}, icon: Icon(Icons.menu)),
+        leading: IconButton(iconSize: 30,onPressed: () {}, icon: Icon(Icons.menu)),
       ),
-      body: SizedBox(
+      body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
+              
               width: MediaQuery.of(context).size.width * 1,
               height: 148,
               decoration: BoxDecoration(
-                color: Colors.amber,
-                borderRadius: BorderRadius.circular(10),
+                
+                color: const Color.fromARGB(202, 115, 64, 255),
+              borderRadius: BorderRadius.only(bottomLeft:Radius.circular(30),bottomRight: Radius.circular(30) )
               ),
               child: Column(
                 children: [
@@ -78,10 +88,10 @@ class _DashboardState extends State<Dashboard> {
                             color: const Color.fromARGB(83, 37, 37, 37),
                           ),
                           Text(
-                            "👋🏼👋🏼Hello, ${widget.name}",
+                            "Hello, ${widget.name}",
                             style: GoogleFonts.poppins(
                               fontSize: 24,
-                              color: const Color.fromARGB(255, 49, 49, 49),
+                              color: const Color.fromARGB(255, 255, 255, 255),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -99,6 +109,7 @@ class _DashboardState extends State<Dashboard> {
                     style: GoogleFonts.geologica(
                       fontSize: 35,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white
                     ),
                   ),
                   Row(
@@ -125,6 +136,64 @@ class _DashboardState extends State<Dashboard> {
                     ],
                   ),
                 ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, top: 10.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Recent Donations",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade200),
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.white,
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0, top: 8.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Keep up the good work!! 💯🚀",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      itemCount: 5,
+                      itemBuilder: (context, index) {
+                        return DonationCard();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, top: 10.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Chairty News & Updates",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           ],

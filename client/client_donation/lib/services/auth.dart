@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
   final storage = const FlutterSecureStorage();
-    String apiBaseUrl="http://localhost:5000/api/users";
+    String apiBaseUrl="http://192.168.0.182:5000/api/users";
   // Login
   Future<Map<String, dynamic>?> login(String phoneNo, String password)  async {
     final response = await http.post(
@@ -35,6 +35,7 @@ class AuthService {
       await _storeTokens( data['token']);
       return data;
     } else {
+      print("Failed let's check the name and phone-no: $name $phoneNo");
       throw Exception('Registration failed: ${response.statusCode}');
     }
   }
