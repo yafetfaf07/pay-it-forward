@@ -1,28 +1,33 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:client_donation/components/donation-card.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class Dashboard extends StatefulWidget {
   final String id;
   Dashboard({super.key, required this.id});
-  String name = "";
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
+  String name = "";
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      getUserName("http://192.168.0.182:5000/api/users/getUsername/${widget.id}");
+      getUserName(
+        "https://pay-it-forward-ez0v.onrender.com/api/users/getUsername/${widget.id}",
+      );
     });
   }
 
   Future<void> getUserName(String merchants) async {
+    print("Where you callued");
     var merchantUrl = Uri.parse(merchants);
     final response = await http.get(
       merchantUrl,
@@ -31,8 +36,9 @@ class _DashboardState extends State<Dashboard> {
 
     if (response.statusCode == 200) {
       dynamic merchantResponse = json.decode(response.body);
+      print(merchantResponse);
       setState(() {
-        widget.name = merchantResponse['data'];
+        name = merchantResponse['data'];
       });
     }
   }
@@ -41,9 +47,42 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => Scaffold(
+                    appBar: AppBar(title: Text("Scan QR Code")),
+                    body: MobileScanner(
+                      controller: MobileScannerController(
+                        returnImage: true,
+                        detectionSpeed: DetectionSpeed.noDuplicates,
+                      ),
+                      onDetect: (capture) {
+                        final List<Barcode> barcodes=capture.barcodes;
+                        final Uint8List? image = capture.image;
+                        for (final barcode in barcodes) {
+                          print("Barcode found! hip hip hooooorrrrrrrrrrrrrrrrrrrrraay:  ${barcode.rawValue}");
+                        }
+                      if(image!=null) {
+                        showDialog(context: context, builder: (context) {
+                          return AlertDialog(
+                            title: Text(barcodes.first.rawValue ?? ""),
+                            content: Image(
+                              image: MemoryImage(image),
+                            ),
+                          );
+                        });
+                      }
+                      },
+                    ),
+                  ),
+            ),
+          );
+        },
         backgroundColor: const Color.fromARGB(202, 115, 64, 255),
-        foregroundColor: Colors.black,
+        foregroundColor: Colors.grey.shade100,
         child: Icon(Icons.qr_code_scanner_outlined),
       ),
       backgroundColor: Colors.white,
@@ -59,19 +98,24 @@ class _DashboardState extends State<Dashboard> {
             icon: Icon(Icons.notifications_outlined),
           ),
         ],
-        leading: IconButton(iconSize: 30,onPressed: () {}, icon: Icon(Icons.menu)),
+        leading: IconButton(
+          iconSize: 30,
+          onPressed: () {},
+          icon: Icon(Icons.menu),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
-              
               width: MediaQuery.of(context).size.width * 1,
               height: 148,
               decoration: BoxDecoration(
-                
                 color: const Color.fromARGB(202, 115, 64, 255),
-              borderRadius: BorderRadius.only(bottomLeft:Radius.circular(30),bottomRight: Radius.circular(30) )
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
               ),
               child: Column(
                 children: [
@@ -88,7 +132,7 @@ class _DashboardState extends State<Dashboard> {
                             color: const Color.fromARGB(83, 37, 37, 37),
                           ),
                           Text(
-                            "Hello, ${widget.name}",
+                            "Hello, $name",
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               color: const Color.fromARGB(255, 255, 255, 255),
@@ -109,7 +153,7 @@ class _DashboardState extends State<Dashboard> {
                     style: GoogleFonts.geologica(
                       fontSize: 35,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white
+                      color: Colors.white,
                     ),
                   ),
                   Row(

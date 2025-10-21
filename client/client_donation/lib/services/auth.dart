@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
   final storage = const FlutterSecureStorage();
-    String apiBaseUrl="http://192.168.0.182:5000/api/users";
+    String apiBaseUrl="https://pay-it-forward-ez0v.onrender.com/api/users";
   // Login
   Future<Map<String, dynamic>?> login(String phoneNo, String password)  async {
     final response = await http.post(
