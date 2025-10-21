@@ -17,6 +17,7 @@ import { CharityRouter } from "./routes/CharityRouter";
 import { MerchantService } from "./services/MerchantService";
 import { MerchantController } from "./controllers/MerhcantController";
 import { MerchantRouter } from "./routes/MerchantRouter";
+import cors from "cors";
 dotenv.config();
 
 const env = envalid.cleanEnv(process.env, {
@@ -33,6 +34,7 @@ const env = envalid.cleanEnv(process.env, {
 });
 
 const app = express();
+app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
