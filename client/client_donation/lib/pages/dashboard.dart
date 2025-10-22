@@ -20,12 +20,11 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   String name = "";
-  int totalDonation=0;
+  int totalDonation = 0;
   int selectedIndex = 0;
   bool isLoading = true;
   bool isOffline = false;
-    List<dynamic> getDonationData = [];
-
+  List<dynamic> getDonationData = [];
 
   @override
   void initState() {
@@ -52,8 +51,12 @@ class _DashboardState extends State<Dashboard> {
       getUserName(
         "https://pay-it-forward-ez0v.onrender.com/api/users/getUsername/${widget.id}",
       );
-      getUserDonation("https://pay-it-forward-ez0v.onrender.com/api/payments/getTotalAmountByUserId/${widget.id}");
-      getListOfRecentDonations("https://pay-it-forward-ez0v.onrender.com/api/payments/getPaymentsByUserId/${widget.id}");
+      getUserDonation(
+        "https://pay-it-forward-ez0v.onrender.com/api/payments/getTotalAmountByUserId/${widget.id}",
+      );
+      getListOfRecentDonations(
+        "https://pay-it-forward-ez0v.onrender.com/api/payments/getPaymentsByUserId/${widget.id}",
+      );
     });
   }
 
@@ -106,8 +109,7 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-
-    Future<void> getListOfRecentDonations(String merchants) async {
+  Future<void> getListOfRecentDonations(String merchants) async {
     setState(() {
       isLoading = true;
     });
@@ -120,11 +122,13 @@ class _DashboardState extends State<Dashboard> {
       );
 
       if (response.statusCode == 200) {
-        List<dynamic> charityResponse = json.decode(response.body);
-        print(charityResponse);
+        Map<String, dynamic> responseBody = json.decode(response.body);
+        print("Response bodyooooooooo $responseBody");
+        List<dynamic> charityResponse = responseBody['data'] ?? [];
+        print('Recent donations: $charityResponse');
         if (mounted) {
           setState(() {
-            getDonationData.addAll(charityResponse);
+            getDonationData = charityResponse; // Replace to avoid duplicates
             isLoading = false;
           });
         }
@@ -135,7 +139,7 @@ class _DashboardState extends State<Dashboard> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to fetch username'),
+              content: Text('Failed to fetch recent donations: ${response.statusCode}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -148,7 +152,7 @@ class _DashboardState extends State<Dashboard> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error fetching username: $e'),
+            content: Text('Error fetching recent donations: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -156,7 +160,7 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
- Future<void> getUserDonation(String merchants) async {
+  Future<void> getUserDonation(String merchants) async {
     setState(() {
       isLoading = true;
     });
@@ -204,7 +208,6 @@ class _DashboardState extends State<Dashboard> {
       }
     }
   }
-
 
   // Function to validate QR code data
   String? _validateQRCodeData(List<Barcode> barcodes, Uint8List? image) {
@@ -307,7 +310,7 @@ class _DashboardState extends State<Dashboard> {
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "uid": uid,
-          "charity_id": "68f0a297f4926b4cb7346cab",
+          "charity_id":"68f9044a01eedfc951d97c48",
           "amount": amount,
         }),
       );
@@ -600,9 +603,13 @@ class _DashboardState extends State<Dashboard> {
                           SizedBox(
                             height: 200,
                             child: ListView.builder(
-                              itemCount: 5,
+                              itemCount: getDonationData.length,
                               itemBuilder: (context, index) {
-                                return DonationCard();
+                                return DonationCard(
+                                  name: getDonationData[index]['charity_name'],
+                                  date: getDonationData[index]['date_created'],
+                                  amount: getDonationData[index]['amount'],
+                                );
                               },
                             ),
                           ),
@@ -634,7 +641,7 @@ class _DashboardState extends State<Dashboard> {
       body: IndexedStack(index: selectedIndex, children: pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
-        onTap:onChange ,
+        onTap: onChange,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
@@ -647,7 +654,7 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-    void onChange(int index) {
+  void onChange(int index) {
     setState(() {
       selectedIndex = index;
     });

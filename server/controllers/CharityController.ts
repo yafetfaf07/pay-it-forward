@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import Charity from "../models/Charity";
 import { CharityService } from "../services/CharityService";
-import { RequestHandler } from "express";
+import { NextFunction, RequestHandler, Request, Response } from "express";
 import createTokens from "../utils/jwt";
 
 export class CharityController {
@@ -70,4 +70,18 @@ export class CharityController {
       next(error);
     }
   }
+
+
+  getAll: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const charities = await this._charityService.getAllCharities();
+      if (charities.length === 0) {
+        throw createHttpError(404, "No charities found");
+      }
+      res.status(200).json({ data: charities });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  };
 }
