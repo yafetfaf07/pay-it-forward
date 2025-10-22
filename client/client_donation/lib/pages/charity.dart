@@ -1,3 +1,4 @@
+import 'package:client_donation/components/charity-card.dart';
 import 'package:flutter/material.dart';
 
 class Charity extends StatelessWidget {
@@ -7,10 +8,16 @@ class Charity extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Charity"),
+        title: Text("Charities"),
       ),
       body: Center(
-        child: Text("Charity"),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:2),
+          scrollDirection: Axis.vertical,
+          itemCount: 5,
+          itemBuilder: (index, context) {
+            return CharityCard();
+        })
       ),
     );
   }

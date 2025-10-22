@@ -34,7 +34,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://gateway.arifpay.org/api/sandbox/checkout//transfer/direct';
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://gateway.arifpay.net/api/sandbox/checkout//transfer/direct';
   const apiToken = import.meta.env.VITE_ARIFY_PAYKEY;
 
   const handleGenerateQR = async () => {
