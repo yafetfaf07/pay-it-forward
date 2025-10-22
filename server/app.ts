@@ -18,6 +18,9 @@ import { MerchantService } from "./services/MerchantService";
 import { MerchantController } from "./controllers/MerhcantController";
 import { MerchantRouter } from "./routes/MerchantRouter";
 import cors from "cors";
+import { PaymentService } from "./services/PaymentService";
+import { PaymentController } from "./controllers/PaymentController";
+import { PaymentRouter } from "./routes/PaymentRouter";
 dotenv.config();
 
 const env = envalid.cleanEnv(process.env, {
@@ -60,13 +63,19 @@ const merchantService = new MerchantService();
 const merchantController = new MerchantController(merchantService);
 const merchantRouter = new MerchantRouter(merchantController);
 
+// Payments 
+const paymentService = new PaymentService();
+const paymentController = new PaymentController(paymentService);
+ const paymentRouter = new PaymentRouter(paymentController);  
+
 // Mount routers
 app.use("/api/merchants", merchantRouter.registerRoutes());
 app.use("/api/users", userRouter.registerRoutes());
 app.use("/api/posts", postRouter.registerRoutes());
 app.use("/api/charities", charityRouter.registerRoutes());
+app.use("/api/payments", paymentRouter.registerRoutes());
 
-
+// Error handling middleware
 app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
   let errorMessage = 'An unknown error occured';
   console.error(error);
