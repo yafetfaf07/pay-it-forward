@@ -79,4 +79,18 @@ export class UserController {
       next(error);
     }
   }
+
+  logout: RequestHandler = async (req, res, next) => {
+    try {
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: false, // Match the secure setting from createUser/login
+        sameSite: "lax", // Match the sameSite setting from createUser/login
+      });
+      res.status(200).json({ message: "Logout successful" });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  };
 }

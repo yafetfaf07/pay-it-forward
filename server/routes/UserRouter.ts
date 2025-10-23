@@ -12,6 +12,7 @@ export class UserRouter {
         this.router.post("/register", this._userController.createUser);
         this.router.post('/login', this._userController.login)
         this.router.get("/getUsername/:id", this._userController.findUserById);
+        this.router.get('/logout',this._userController.logout);
         return this.router;
     }
 }
