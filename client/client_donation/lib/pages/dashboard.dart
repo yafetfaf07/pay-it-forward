@@ -568,7 +568,7 @@ class _DashboardState extends State<Dashboard> {
                 );
                 Navigator.of(
                   context,
-                ).push(MaterialPageRoute(builder: (context) => HomeScreen()));
+                ).push(MaterialPageRoute(builder: (context) => WelcomeScreen()));
               },
             ),
           ],
