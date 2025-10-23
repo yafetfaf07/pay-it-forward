@@ -13,6 +13,7 @@ export class PostRouter {
         this.router.post("/createPost/:id",
             upload.single('file'),
             this._postController.createPost);
+        this.router.get('/getAllpost', this._postController.getAllPost);
         return this.router;
     }
 }

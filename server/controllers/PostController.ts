@@ -51,4 +51,19 @@ export class PostController {
             next(error);
         }
     }
+    getAllPost:RequestHandler<unknown,unknown,unknown,unknown> = async(req,res,next) => {
+        const getAllPosts = await this._postService.getAllPosts();
+        try {
+            if(getAllPosts.length==0) {
+                throw createHttpError(404,"Post Not found");
+            }
+            res.status(200).json({data:getAllPosts});
+        } catch (error) {
+            console.error(error);
+            next(error);
+        }
+       
+        
+
+    }
 }
