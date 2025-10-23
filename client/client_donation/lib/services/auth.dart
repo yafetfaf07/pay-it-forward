@@ -6,11 +6,11 @@ class AuthService {
   final storage = const FlutterSecureStorage();
     String apiBaseUrl="https://pay-it-forward-ez0v.onrender.com/api/users";
   // Login
-  Future<Map<String, dynamic>?> login(String phoneNo, String password)  async {
+  Future<Map<String, dynamic>?> login(String phoneNo)  async {
     final response = await http.post(
       Uri.parse('$apiBaseUrl/login'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'phone_no': phoneNo, 'password': password}),
+      body: jsonEncode({'phone_no': phoneNo,}),
     );
 
     if (response.statusCode == 200) {

@@ -1,23 +1,22 @@
 import 'dart:convert';
 
-import 'package:client_donation/pages/login.dart';
 import 'package:client_donation/pages/otp_form.dart';
+import 'package:client_donation/pages/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import "package:http/http.dart" as http;
-class Signup extends StatefulWidget {
-  Signup({super.key});
+class Login extends StatefulWidget {
+  Login({super.key});
 
   @override
-  State<Signup> createState() => _SignupState();
+  State<Login> createState() => _LoginState();
 }
 
-class _SignupState extends State<Signup> {
+class _LoginState extends State<Login> {
   // Controllers
-  TextEditingController name = TextEditingController();
   TextEditingController phoneController = TextEditingController();
 
   // ⭐ FIXED: PhoneNumber as CLASS VARIABLE - NO REBUILDS!
@@ -51,14 +50,14 @@ class _SignupState extends State<Signup> {
                 child: Column(
                   children: [
                     Image.asset(
-                      'images/sign-illus.jpg',
+                      'images/logillus.jpg',
                       height: 250,
                       fit: BoxFit.contain,
                     ),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Create your account",
+                        "Welcome back!",
                         style: GoogleFonts.poppins(
                           fontSize: 24,
                           fontWeight: FontWeight.w500,
@@ -66,16 +65,7 @@ class _SignupState extends State<Signup> {
                       ),
                     ),
                     SizedBox(height: 20,),
-                    TextField(
-                      controller: name,
-                      decoration: InputDecoration(
-                        label: Text("Enter your name"),
-                        hintText: "John Doe",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
+                
                     const SizedBox(
                       height: 20,
                     ),
@@ -154,11 +144,11 @@ class _SignupState extends State<Signup> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 8.0),
-                    child: Text("Already have an account?"),
+                    child: Text("Don't have an account?"),
                   ),
                   GestureDetector(onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => Login()));
-                  },child: Text("Login", style: TextStyle(color: Colors.grey),))
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => Signup()));
+                  },child: Text("Signup", style: TextStyle(color: Colors.grey),))
                 ],
               )
             ],
@@ -186,7 +176,7 @@ class _SignupState extends State<Signup> {
     // ⭐ Navigate to OTP
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => OtpForm(phone: fullPhone, name:name.text)),
+      MaterialPageRoute(builder: (_) => OtpForm(phone: fullPhone,)),
     );
   }
 

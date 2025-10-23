@@ -1,18 +1,22 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:client_donation/components/charity-news.dart';
 import 'package:client_donation/components/donation-card.dart';
+import 'package:client_donation/main.dart';
 import 'package:client_donation/pages/charity.dart';
 import 'package:client_donation/pages/profile.dart';
+import 'package:client_donation/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class Dashboard extends StatefulWidget {
-  final String id;
+  final dynamic id;
   const Dashboard({super.key, required this.id});
   @override
   State<Dashboard> createState() => _DashboardState();
@@ -25,7 +29,10 @@ class _DashboardState extends State<Dashboard> {
   bool isLoading = true;
   bool isOffline = false;
   List<dynamic> getDonationData = [];
-
+  List<dynamic> getPostData = [];
+  List<dynamic> getCharityData = [];
+  Map<String, dynamic> userId = {};
+  ApiService _service = ApiService();
   @override
   void initState() {
     super.initState();
@@ -46,18 +53,79 @@ class _DashboardState extends State<Dashboard> {
       });
       return;
     }
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      Map<String, dynamic> id = JwtDecoder.decode(widget.id);
+      setState(() {
+        userId = id;
+      });
+      dynamic charityResponse = _service.getAllCharities(
+        "https://pay-it-forward-ez0v.onrender.com/api/charities/getAll",
+      );
+
       getUserName(
-        "https://pay-it-forward-ez0v.onrender.com/api/users/getUsername/${widget.id}",
+        "https://pay-it-forward-ez0v.onrender.com/api/users/getUsername/${id['id']}",
       );
       getUserDonation(
-        "https://pay-it-forward-ez0v.onrender.com/api/payments/getTotalAmountByUserId/${widget.id}",
+        "https://pay-it-forward-ez0v.onrender.com/api/payments/getTotalAmountByUserId/${id['id']}",
       );
       getListOfRecentDonations(
-        "https://pay-it-forward-ez0v.onrender.com/api/payments/getPaymentsByUserId/${widget.id}",
+        "https://pay-it-forward-ez0v.onrender.com/api/payments/getPaymentsByUserId/${id['id']}",
+      );
+      getListOfPost(
+        "https://pay-it-forward-ez0v.onrender.com/api/posts/getAllpost",
       );
     });
+  }
+
+  Future<void> getListOfPost(String postUrl) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      var merchantUrl = Uri.parse(postUrl);
+      final response = await http.get(
+        merchantUrl,
+        headers: {"Content-Type": "application/json"},
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseBody = json.decode(response.body);
+        List<dynamic> charityResponse = responseBody['data'] ?? [];
+        if (mounted) {
+          setState(() {
+            getPostData = charityResponse;
+            isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Failed to fetch Charity News: ${response.statusCode}',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error fetching Charity news: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> getUserName(String merchants) async {
@@ -74,7 +142,6 @@ class _DashboardState extends State<Dashboard> {
 
       if (response.statusCode == 200) {
         dynamic merchantResponse = json.decode(response.body);
-        print(merchantResponse);
         if (mounted) {
           setState(() {
             name = merchantResponse['data'];
@@ -123,12 +190,10 @@ class _DashboardState extends State<Dashboard> {
 
       if (response.statusCode == 200) {
         Map<String, dynamic> responseBody = json.decode(response.body);
-        print("Response bodyooooooooo $responseBody");
         List<dynamic> charityResponse = responseBody['data'] ?? [];
-        print('Recent donations: $charityResponse');
         if (mounted) {
           setState(() {
-            getDonationData = charityResponse; // Replace to avoid duplicates
+            getDonationData = charityResponse;
             isLoading = false;
           });
         }
@@ -139,7 +204,9 @@ class _DashboardState extends State<Dashboard> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to fetch recent donations: ${response.statusCode}'),
+              content: Text(
+                'Failed to fetch recent donations: ${response.statusCode}',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -174,7 +241,6 @@ class _DashboardState extends State<Dashboard> {
 
       if (response.statusCode == 200) {
         dynamic merchantResponse = json.decode(response.body);
-        print(merchantResponse);
         if (mounted) {
           setState(() {
             totalDonation = merchantResponse['data']['totalAmount'];
@@ -201,7 +267,7 @@ class _DashboardState extends State<Dashboard> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error fetching username: $e'),
+            content: Text('Error fetching total donations: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -217,7 +283,6 @@ class _DashboardState extends State<Dashboard> {
         return null;
       }
       _showDonationDialog(url);
-      //  final uri = Uri.tryParse(url);
       return url;
     }
     return null;
@@ -309,8 +374,8 @@ class _DashboardState extends State<Dashboard> {
         ),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
-          "uid": uid,
-          "charity_id":"68f9044a01eedfc951d97c48",
+          "uid": userId['id'],
+          "charity_id": "68f9044a01eedfc951d97c48",
           "amount": amount,
         }),
       );
@@ -320,9 +385,7 @@ class _DashboardState extends State<Dashboard> {
           if (await canLaunchUrl(Uri.parse(url))) {
             await launchUrl(
               Uri.parse(url),
-              mode:
-                  LaunchMode
-                      .externalApplication, // Opens in the default browser
+              mode: LaunchMode.externalApplication,
             );
           } else {
             throw 'Could not launch $url';
@@ -407,10 +470,108 @@ class _DashboardState extends State<Dashboard> {
             icon: Icon(Icons.notifications_outlined),
           ),
         ],
-        leading: IconButton(
-          iconSize: 30,
-          onPressed: () {},
-          icon: Icon(Icons.menu),
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              iconSize: 30,
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+              icon: Icon(Icons.menu),
+            );
+          },
+        ),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(202, 115, 64, 255),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hello, $name',
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Welcome to Ligesa',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home, color: Colors.grey.shade700),
+              title: Text('Home', style: GoogleFonts.poppins()),
+              selected: selectedIndex == 0,
+              onTap: () {
+                setState(() {
+                  selectedIndex = 0;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.volunteer_activism,
+                color: Colors.grey.shade700,
+              ),
+              title: Text('Charity', style: GoogleFonts.poppins()),
+              selected: selectedIndex == 1,
+              onTap: () {
+                setState(() {
+                  selectedIndex = 1;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person, color: Colors.grey.shade700),
+              title: Text('Profile', style: GoogleFonts.poppins()),
+              selected: selectedIndex == 2,
+              onTap: () {
+                setState(() {
+                  selectedIndex = 2;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.settings, color: Colors.grey.shade700),
+              title: Text('Settings', style: GoogleFonts.poppins()),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Settings page not implemented yet')),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout, color: Colors.grey.shade700),
+              title: Text('Logout', style: GoogleFonts.poppins()),
+              onTap: () {
+                ApiService().logout(
+                  "https://pay-it-forward-ez0v.onrender.com/api/users/logout",
+                );
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (context) => HomeScreen()));
+              },
+            ),
+          ],
         ),
       ),
       body:
@@ -473,163 +634,193 @@ class _DashboardState extends State<Dashboard> {
                   ],
                 ),
               )
-              : SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 1,
-                      height: 148,
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(202, 115, 64, 255),
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
+              : RefreshIndicator(
+                color: const Color.fromARGB(202, 115, 64, 255),
+                onRefresh: checkConnectivityAndFetch,
+                child: SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: MediaQuery.of(context).size.width * 1,
+                        height: 148,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(202, 115, 64, 255),
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30),
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Image.asset(
-                                    'images/star.png',
-                                    height: 20,
-                                    color: const Color.fromARGB(83, 37, 37, 37),
-                                  ),
-                                  Text(
-                                    "Hello, $name",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 24,
+                        child: Column(
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Image.asset(
+                                      'images/star.png',
+                                      height: 20,
                                       color: const Color.fromARGB(
-                                        255,
-                                        255,
-                                        255,
-                                        255,
+                                        83,
+                                        37,
+                                        37,
+                                        37,
                                       ),
-                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    Text(
+                                      "Hello, $name",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 24,
+                                        color: const Color.fromARGB(
+                                          255,
+                                          255,
+                                          255,
+                                          255,
+                                        ),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Image.asset(
+                                      'images/star.png',
+                                      height: 20,
+                                      color: const Color.fromARGB(
+                                        83,
+                                        37,
+                                        37,
+                                        37,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Text(
+                              "\$$totalDonation",
+                              style: GoogleFonts.geologica(
+                                fontSize: 35,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Image.asset(
+                                  'images/star.png',
+                                  height: 20,
+                                  color: const Color.fromARGB(83, 37, 37, 37),
+                                ),
+                                Text(
+                                  "Total donations",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    color: const Color.fromARGB(
+                                      255,
+                                      227,
+                                      227,
+                                      227,
                                     ),
                                   ),
-                                  Image.asset(
-                                    'images/star.png',
-                                    height: 20,
-                                    color: const Color.fromARGB(83, 37, 37, 37),
-                                  ),
-                                ],
-                              ),
+                                ),
+                                Image.asset(
+                                  'images/star.png',
+                                  height: 20,
+                                  color: const Color.fromARGB(83, 37, 37, 37),
+                                ),
+                              ],
                             ),
-                          ),
-                          Text(
-                            "\$$totalDonation",
-                            style: GoogleFonts.geologica(
-                              fontSize: 35,
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0, top: 10.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Recent Donations",
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              fontSize: 24,
                             ),
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Image.asset(
-                                'images/star.png',
-                                height: 20,
-                                color: const Color.fromARGB(83, 37, 37, 37),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade200),
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.white,
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 12.0,
+                                top: 8.0,
                               ),
-                              Text(
-                                "Total donations",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  color: const Color.fromARGB(
-                                    255,
-                                    227,
-                                    227,
-                                    227,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  "Keep up the good work!! 💯🚀",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 16,
+                                    color: Colors.grey,
                                   ),
                                 ),
                               ),
-                              Image.asset(
-                                'images/star.png',
-                                height: 20,
-                                color: const Color.fromARGB(83, 37, 37, 37),
+                            ),
+                            SizedBox(
+                              height: 200,
+                              child: ListView.builder(
+                                itemCount: getDonationData.length,
+                                itemBuilder: (context, index) {
+                                  return DonationCard(
+                                    name:
+                                        getDonationData[index]['charity_name'],
+                                    date:
+                                        getDonationData[index]['date_created'],
+                                    amount: getDonationData[index]['amount'],
+                                  );
+                                },
                               ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0, top: 10.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Recent Donations",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 24,
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0, top: 10.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Charity News & Updates",
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(top: 10, left: 10, right: 10),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade200),
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
-                      ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 12.0,
-                              top: 8.0,
-                            ),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                "Keep up the good work!! 💯🚀",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 200,
-                            child: ListView.builder(
-                              itemCount: getDonationData.length,
-                              itemBuilder: (context, index) {
-                                return DonationCard(
-                                  name: getDonationData[index]['charity_name'],
-                                  date: getDonationData[index]['date_created'],
-                                  amount: getDonationData[index]['amount'],
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0, top: 10.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Charity News & Updates",
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      SizedBox(
+                        height: 270,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: getPostData.length,
+                          itemBuilder: (context, index) {
+                            return CharityNews(
+                              name: getPostData[index]['name'],
+                              description: getPostData[index]['desc'],
+                            );
+                          },
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
     );
@@ -648,7 +839,6 @@ class _DashboardState extends State<Dashboard> {
             icon: Icon(Icons.volunteer_activism),
             label: 'Charity',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

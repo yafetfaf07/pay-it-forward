@@ -9,8 +9,8 @@ import 'package:client_donation/services/auth.dart';
 
 class OtpForm extends StatefulWidget {
   final String phone;
-  final String name;
-  OtpForm({super.key, required this.phone, required  this.name});
+  final String? name;
+  OtpForm({super.key, required this.phone, this.name});
 
   @override
   State<OtpForm> createState() => _OtpFormState();
@@ -18,30 +18,26 @@ class OtpForm extends StatefulWidget {
 
 class _OtpFormState extends State<OtpForm> {
   TextEditingController _controller1 = TextEditingController();
-
   TextEditingController _controller2 = TextEditingController();
-
   TextEditingController _controller3 = TextEditingController();
-
   TextEditingController _controller4 = TextEditingController();
 
-  final AuthService _authService = AuthService(); 
-  String id="";
+  final AuthService _authService = AuthService();
+  String id = "";
 
   Future<Map<String, dynamic>> verifyOtp(String token, String otpcode) async {
-    // ⭐ Map, not List!
     final response = await http.get(
       Uri.parse(
         'https://api.afromessage.com/api/verify?to=${widget.phone}&vc=&code=$otpcode',
       ),
       headers: {'Authorization': 'Bearer $token'},
     );
-if (response.statusCode==200) {
-  return jsonDecode(response.body);
-}
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
 
     print("❌ Failed: ${response.body}");
-    return {'error': 'Failed'}; // ⭐ Returns Map
+    return {'error': 'Failed'};
   }
 
   @override
@@ -185,33 +181,54 @@ if (response.statusCode==200) {
                 ),
               ),
               onPressed: () async {
-                // ⭐ Add async
                 String fullOtp =
                     _controller1.text +
                     _controller2.text +
                     _controller3.text +
                     _controller4.text;
-        
+
                 Map<String, dynamic> result = await verifyOtp(
-                  // ⭐ Add await
                   dotenv.env['AFRMESSAGE_TOKEN']!,
                   fullOtp,
                 );
-        
+
                 if (result['acknowledge'] == "success") {
-                  dynamic mongoDB=_authService.register(widget.name, widget.phone);
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('✅ Verified! Welcome!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-        
-                  // Navigate to home
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (context) => Dashboard(id:id)));
+                  try {
+                    Map<String, dynamic>? mongoDB;
+                    if (widget.name == "" || widget.name == null) {
+                      mongoDB = await _authService.login(widget.phone);
+                    } else {
+                      mongoDB = await _authService.register(widget.name!, widget.phone);
+                    }
+
+                    if (mongoDB != null && mongoDB['token'] != null) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => Dashboard(id: mongoDB!['token']),
+                        ),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('✅ Verified! Welcome!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('❌ Authentication failed: No token received'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('❌ Authentication error: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

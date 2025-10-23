@@ -19,10 +19,10 @@ class MyApp extends StatelessWidget {
   Future<Widget> _getInitialPage() async {
     const storage = FlutterSecureStorage();
     final String? refreshToken = await storage.read(key: 'token');
-print(refreshToken);
+print(" From Main. dart$refreshToken");
     if (refreshToken != null && !JwtDecoder.isExpired(refreshToken)) {
       // Token exists and is not expired
-      return Dashboard(id: JwtDecoder.decode(refreshToken)['id']);
+      return Dashboard(id:refreshToken);
     } else {
       // Token is missing or expired
       return  HomeScreen();
