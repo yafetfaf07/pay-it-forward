@@ -9,7 +9,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:video_player/video_player.dart';
 
+// Ensure you have a 'pages/dashboard.dart' and 'pages/signup.dart' file
+// And your video is in 'images/video-illus.mp4' and declared in pubspec.yaml
+
 Future main() async {
+  // WidgetsFlutterBinding.ensureInitialized(); // Always good practice before native calls
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
@@ -26,14 +30,13 @@ class MyApp extends StatelessWidget {
       return Dashboard(id: refreshToken);
     } else {
       // Token is missing or expired
-      return WelcomeScreen();
+      return const WelcomeScreen();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // theme: ThemeData(textTheme: GoogleFonts.geologicaTextTheme()),
       debugShowCheckedModeBanner: false,
       home: FutureBuilder<Widget>(
         future: _getInitialPage(),
@@ -50,8 +53,9 @@ class MyApp extends StatelessWidget {
               body: Center(child: Text('Error checking authentication')),
             );
           }
-          // Return the resolved page (UserHomePage or UserSignUppage)
-          return snapshot.data ?? Signup();
+          // Return the resolved page (Dashboard or WelcomeScreen)
+          // Use snapshot.data or fallback to Signup
+          return snapshot.data ??  Signup();
         },
       ),
     );
@@ -109,10 +113,8 @@ class HomeScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (ctx) => Signup()),
+                      MaterialPageRoute(builder: (ctx) =>  Signup()),
                     );
-                    // 3. Call the function using the valid HomeScreen context
-                    // _showCustomModalSheet(context);
                   },
                   child: Text(
                     "Get Started",
@@ -131,8 +133,9 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// Assuming you use this
-// import 'signup.dart'; // Make sure to import your Signup screen
+// =======================================================================
+// WELCOMESCREEN WITH LOOPING VIDEO AND EXPANDED FIX
+// =======================================================================
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -148,7 +151,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void initState() {
     super.initState();
 
-    // 1. Initialize the Video Controller (Use .asset or .networkUrl)
+    // 1. Initialize the Video Controller
     _videoController = VideoPlayerController.asset('images/video-illus.mp4')
       ..initialize()
           .then((_) {
@@ -178,30 +181,33 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final isVideoInitialized = _videoController.value.isInitialized;
 
     // --- Video Player Widget ---
-    final videoWidget =
-        isVideoInitialized
-            ? AspectRatio(
-              aspectRatio: _videoController.value.aspectRatio,
-              child: VideoPlayer(_videoController),
-            )
-            : const Center(
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
+    final videoWidget = isVideoInitialized
+        ? AspectRatio(
+            aspectRatio: _videoController.value.aspectRatio,
+            child: VideoPlayer(_videoController),
+          )
+        : const Center(
+            child: SizedBox(
+              height: 50,
+              width: 50,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: PageView(
         children: [
-          // --- Page 1: Video Placeholder/Content ---
+          // --- Page 1: Video Placeholder/Content (FIXED) ---
           SizedBox(
-            height: 500,
             child: ListView(
+              // Removed height: 500 from SizedBox to let ListView determine height
               children: [
-                Expanded(child: videoWidget), // Display the looping video here
+                // 🛑 FIXED: Using SizedBox with defined height instead of Expanded
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.45, // Allocate ~45% of screen height
+                  child: videoWidget,
+                ),
                 Center(
                   child: const Text(
                     "Ligesa/ልገሳ",
@@ -217,8 +223,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 100),
-
+                const SizedBox(height: 100),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -238,7 +243,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
           // --- Page 2: Your existing content ---
           SizedBox(
-            height: 500,
             child: ListView(
               children: [
                 Image.asset("images/logillus.jpg"),
@@ -282,22 +286,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           SizedBox(
             child: Column(
               children: [
-                SizedBox(height: 30,),
+                const SizedBox(height: 30),
                 Image.asset("images/sign-illus.jpg"),
-                Padding(
-                  padding: const EdgeInsets.only(left: 10.0),
-                  child: const Text(
+                const Padding(
+                  padding: EdgeInsets.only(left: 10.0, top: 20, right: 10),
+                  child: Text(
                     "Don't wait to make a difference. Your support is crucial, and it all starts here. Create your account now to begin your journey of giving!",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
                   ),
                 ),
-                SizedBox(height: 30,),
+                const SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       fixedSize: const Size(200, 50),
-                      backgroundColor: Color.fromARGB(255, 158, 30, 232),
+                      backgroundColor: const Color.fromARGB(255, 158, 30, 232),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(13),
                       ),
